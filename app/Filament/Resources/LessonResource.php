@@ -5,14 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LessonResource\Pages;
 use App\Filament\Resources\LessonResource\RelationManagers;
 use App\Models\Lesson;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Model;
 
 class LessonResource extends Resource
 {
@@ -20,13 +19,15 @@ class LessonResource extends Resource
 
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function getRecordTitle(?Model $record): string|null|Htmlable
+    {
+        return $record->title;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('course_id')
-                    ->relationship('course', 'name')
-                    ->required(),
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->maxLength(255),
@@ -41,9 +42,6 @@ class LessonResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('course.name')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -59,7 +57,7 @@ class LessonResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                //
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
