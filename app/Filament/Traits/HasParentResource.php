@@ -28,13 +28,15 @@ trait HasParentResource
         }
     }
 
-    public function getParentResource(): string
+    public static function getParentResource(): string
     {
-        if (!isset(static::$parentResource)) {
-            throw new Exception('Parent resource is not set for ' . static::class);
+        $parentResource = static::getResource()::$parentResource;
+
+        if (!isset($parentResource)) {
+            throw new Exception('Parent resource is not set for '.static::class);
         }
 
-        return static::$parentResource;
+        return $parentResource;
     }
 
     protected function applyFiltersToTableQuery(Builder $query): Builder
@@ -46,25 +48,22 @@ trait HasParentResource
     {
         // You can set Custom relationship key (if it does not match the table name pattern) via $relationshipKey property.
         // Otherwise, it will be auto-resolved.
-        return $this->relationshipKey ?? str($this->parent?->getTable())->singular()->append('_id')->toString();
+        return $this->relationshipKey ?? $this->parent?->getForeignKey();
     }
 
     public function getBreadcrumbs(): array
     {
-        $resource = $this->getResource();
-        $parentResource = $this->getParentResource();
+        $resource = static::getResource();
+        $parentResource = static::getParentResource();
 
         $breadcrumbs = [
             $parentResource::getUrl() => $parentResource::getBreadCrumb(),
-            '#parent' => $parentResource::getRecordTitle($this->parent),
-
-            $parentResource::getUrl($resource::getPluralModelLabel() . '.index', [
-                'parent' => $this->parent,
-            ]) => $resource::getBreadCrumb(),
+            $parentResource::getRecordTitle($this->parent),
+            url($this->getName(), ['parent' => $this->parent]) => $resource::getBreadCrumb(),
         ];
 
         if (isset($this->record)) {
-            $breadcrumbs['#'] = $resource::getRecordTitle($this->record);
+            $breadcrumbs[] = $resource::getRecordTitle($this->record);
         }
 
         $breadcrumbs[] = $this->getBreadCrumb();

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\LessonResource\Pages;
-use App\Filament\Resources\LessonResource\RelationManagers;
 use App\Models\Lesson;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class LessonResource extends Resource
 {
+    public static string $parentResource = CourseResource::class;
+
     protected static ?string $model = Lesson::class;
 
     protected static bool $shouldRegisterNavigation = false;
@@ -57,7 +58,14 @@ class LessonResource extends Resource
                 //
             ])
             ->actions([
-                //
+                Tables\Actions\EditAction::make()
+                    ->url(
+                        fn (Pages\ListLessons $livewire, Model $record): string => static::$parentResource::getUrl('lessons.edit', [
+                            'record' => $record,
+                            'parent' => $livewire->parent,
+                        ])
+                    ),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
