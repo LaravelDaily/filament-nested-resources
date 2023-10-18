@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @property string|null $relationshipKey Define custom relationship key (if it does not match the table name pattern).
+ * @property string|null $pageNamePrefix Define custom child page name prefix (if it does not match the resource's slug).
  */
 trait HasParentResource
 {
@@ -51,6 +52,13 @@ trait HasParentResource
         return $this->relationshipKey ?? $this->parent?->getForeignKey();
     }
 
+    public function getChildPageNamePrefix(): string
+    {
+        return $this->pageNamePrefix ?? (string) str(static::getResource()::getSlug())
+            ->replace('/', '.')
+            ->afterLast('.');
+    }
+
     public function getBreadcrumbs(): array
     {
         $resource = static::getResource();
@@ -59,7 +67,7 @@ trait HasParentResource
         $breadcrumbs = [
             $parentResource::getUrl() => $parentResource::getBreadCrumb(),
             $parentResource::getRecordTitle($this->parent),
-            url($this->getName(), ['parent' => $this->parent]) => $resource::getBreadCrumb(),
+            $parentResource::getUrl(name: $this->getChildPageNamePrefix() . '.index', parameters: ['parent' => $this->parent]) => $resource::getBreadCrumb(),
         ];
 
         if (isset($this->record)) {
