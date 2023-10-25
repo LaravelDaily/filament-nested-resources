@@ -42,6 +42,9 @@ trait HasParentResource
 
     protected function applyFiltersToTableQuery(Builder $query): Builder
     {
+        // Apply any filters before the parent relationship key is applied.
+        $query = parent::applyFiltersToTableQuery($query);
+
         return $query->where($this->getParentRelationshipKey(), $this->parent->getKey());
     }
 
